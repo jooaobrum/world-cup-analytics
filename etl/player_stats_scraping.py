@@ -79,7 +79,7 @@ def extract_player_season(soup, id):
 def extract_player_stats(url, stats_link, last_n_seasons):
     player_seasons = pd.DataFrame()
     for stats_link_season in stats_link[-last_n_seasons:]:
-        print(stats_link_season)    
+       
         # Get the player stats with pandas
         player_stats = pd.DataFrame(pd.read_html(url + stats_link_season[1:])[0])
 
