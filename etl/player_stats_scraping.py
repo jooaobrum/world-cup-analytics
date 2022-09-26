@@ -90,6 +90,7 @@ def extract_player_stats(url, stats_link, last_n_seasons):
         
         # Organize columns 
         player_stats = player_stats.loc[:, player_stats.columns.tolist()[-3:] + player_stats.columns.tolist()[:-3]]
+        player_stats = player_stats.loc[:, ~player_stats.columns.duplicated()]
         player_seasons = pd.concat([player_seasons, player_stats], axis = 0, ignore_index=True)
     return player_seasons
 
