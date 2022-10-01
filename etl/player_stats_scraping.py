@@ -1,5 +1,4 @@
  
-
 # Imports
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -107,8 +106,20 @@ def extract_player_matches(soup_, id_table):
 
 def organize_table(df):
     cols = df.columns.map('_'.join).tolist()
-    treated_cols = [col.split('_')[-1].lower() if 'Unnamed' in col else col.lower() for col in cols]
-    treated_cols = list(map(lambda x: x.replace('nação', 'nacao'), treated_cols))
+    cols = [col.split('_')[-1].lower() if 'Unnamed' in col else col.lower() for col in cols]
+    treated_cols = []
+    for word in manual_replace.keys():
+        if word == 'nação':
+            treated_cols.append('nacao')
+        elif word == '#':
+            treated_cols.append('num_camisa')
+        elif '%' in word:
+            treated_cols.append(word.replace('%', '_porc'))
+        elif '.' in word:
+            treated_cols.append(word.replace('.', ''))
+        else:
+            treated_cols.append(word)
+    
     df.columns = treated_cols
 
     return df
@@ -117,7 +128,7 @@ def organize_table(df):
 # Main
 
 def main():
-
+    
 
     # Team to analyze
     team_analyzed = 'Brazil'
@@ -186,7 +197,7 @@ def main():
 
     # Organize Columns with Date at first
     player_stats_df = player_stats_df.loc[:, ['data', 'equipe', 'oponente'] + player_stats_df.drop(['data', 'equipe', 'oponente'], axis = 1).columns.tolist()]
-
+        
     # Save to a CSV
     player_stats_df.to_csv('Brazil_world_cup_2022.csv')
 
