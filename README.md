@@ -1,5 +1,7 @@
 # Brazil National Team Analysis - Is really Neymar the best hope?
 
+This analysis intend to help to understand better the Brazil national team and support some hypothesis created during the last 4 years. The scope of this work is extract statistical information about matches that contains brazilian players in the last 3 seasons and show some useful information 1 month before the World Cup 2022.
+
 
 
 ## Index
@@ -8,6 +10,14 @@
 - [2. Analysis](#2-análises)
 
 ## 1. ETL
+
+The first step of this analysis is to extract data from $www.fbref.com$ through some libraries that allows web-scrapping. To following diagram shows the ETL flow:
+
+![etl_flow](imgs/player_scrapping.drawio.png)
+
+The libraries used for this step are: requests, pandas, sqlalchemy and bs4.
+
+After some scrapping, the description of each extracted feature are represented in the table below: 
 
 ### 1.1 Feature Description
 | Feature | Description | 
