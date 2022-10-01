@@ -11,13 +11,21 @@ This analysis intend to help to understand better the Brazil national team and s
 
 ## 1. ETL
 
-The first step of this analysis is to extract data from $www.fbref.com$ through some libraries that allows web-scrapping. To following diagram shows the ETL flow:
+The first step of this analysis is to extract data from www.fbref.com through some libraries that allows web-scrapping. The following diagram shows the ETL flow:
 
 ![etl_flow](imgs/player_scrapping.drawio.png)
 
-The libraries used for this step are: requests, pandas, sqlalchemy and bs4.
+Basically, the ETL will access the website in the World Cup's page, it will search by the Brazilian team and its players. Since we have this information, it is possible to access the player's page and the historical for different seasons. A for loop is implemented to get N seasons and also iterate for all the national team. Then, the dataset is saved in a csv file and a data ingestion is processed to move this file to a sqlite database.
+
+Libraries that were used for this step are: 
+1. Requests - allows page requests
+2. Pandas - allows data manipulations
+3. Sqlalchemy - allows connection with sqlite database
+4. BeautifulSoup - allows extract information from a HTML page
+
 
 After some scrapping, the description of each extracted feature are represented in the table below: 
+
 
 ### 1.1 Feature Description
 | Feature | Description | 
