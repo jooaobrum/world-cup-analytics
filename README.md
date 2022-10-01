@@ -49,9 +49,9 @@ After some scrapping, the description of each extracted feature are represented 
 | desempenho_crtv |  Red Card |
 | desempenho_contatos |Number of times the player has touched the ball |
 | desempenho_pressão |Number of times pressure was placed on the opponent |
-| desempenho_div |  Number of splits |
-| desempenho_crts |  Number of cuts |
-| desempenho_bloqueio |Number of times the ball was blocked |
+| desempenho_div |  Number of tackles |
+| desempenho_crts |  Number of tackles well done |
+| desempenho_bloqueio | Number of times the ball was blocked |
 | esperado_xg |  Expected goals |
 | esperado_npxg |  Expected normal goals |
 | esperado_xa | Expected number of assistances |
@@ -66,8 +66,8 @@ After some scrapping, the description of each extracted feature are represented 
 | dribles_succ | Successfully completed dribbling |
 | dribles_att |  Tried dribbling |
 | desempenho_fts | Fouls committed |
-| desempenho_fltsp | Absences suffered |
-| desempenho_desativa |Number of impediments |
+| desempenho_fltsp | Fouls suffered |
+| desempenho_desativa |Number of offsides |
 | desempenho_crz |  Number of crossings |
 | desempenho_tklw |  Defenses that the opposing player keeps the ball |
 | desempenho_og |  Own goals |
