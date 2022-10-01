@@ -84,14 +84,10 @@ def extract_player_season(soup, id):
 def extract_matches_stats(url, team):
     tables = pd.DataFrame(pd.read_html(url, match = f'{team} Estatísticas d'))
     table_player = tables.loc[0][0]
-    table_player.columns = table_player.columns.get_level_values(1)
+    table_player = organize_table(table_player)
 
-    table_gk = tables.loc[1][0]
-    table_gk.columns = table_gk.columns.get_level_values(1)
-    table_players = pd.merge(table_player, table_gk, left_index=True, right_index=True, suffixes=('', '_DROP'), how = 'left').filter(regex='^(?!.*_DROP)').iloc[:-1]
-
-
-    return table_players
+    
+    return table_player.iloc[:-1, :]
 
 def extract_player_matches(soup_, id_table):
     matches_link = []
@@ -109,12 +105,18 @@ def extract_player_matches(soup_, id_table):
             opponents.append(row.find_all('td')[6].find('a').text)
     return (date, matches_link, teams, opponents)
 
+def organize_table(df):
+    cols = df.columns.map('_'.join).tolist()
+    treated_cols = [col.split('_')[-1].lower() if 'Unnamed' in col else col.lower() for col in cols]
+    treated_cols = list(map(lambda x: x.replace('nação', 'nacao'), treated_cols))
+    df.columns = treated_cols
+
+    return df
+
 
 # Main
 
 def main():
-
-
 
 
     # Team to analyze
@@ -140,7 +142,7 @@ def main():
     player_dict = extract_players(url, soup_players, 'stats_standard_4')
 
 
-    
+
     # Empty dataframe      
     player_stats_df = pd.DataFrame()
 
@@ -170,24 +172,20 @@ def main():
                     stats = extract_matches_stats(url[:-1] + link, team)
                     stats = stats.loc[:, ~stats.columns.duplicated()]
                     
-                    stats['Data'] = date
-                    stats['Equipe'] = team
-                    stats['Oponente'] = opponent
+                    stats['data'] = date
+                    stats['equipe'] = team
+                    stats['oponente'] = opponent
 
                     
                     # Concatenate the files
                     player_stats_df = pd.concat([player_stats_df, stats], axis = 0, ignore_index=True, sort=False)
                 
-            
-    # Remove all the _x and _y suffix
-    player_stats_df = player_stats_df[player_stats_df.columns.drop(list(player_stats_df.filter(regex='_')))]
-
-
+        
     # Some players are from the same team and the stats are duplicated for the match
     player_stats_df = player_stats_df.drop_duplicates()
 
     # Organize Columns with Date at first
-    player_stats_df = player_stats_df.loc[:, ['Data', 'Equipe', 'Oponente'] + player_stats_df[~player_stats_df.isin(['Data', 'Equipe', 'Oponente'])].columns.tolist()]
+    player_stats_df = player_stats_df.loc[:, ['data', 'equipe', 'oponente'] + player_stats_df.drop(['data', 'equipe', 'oponente'], axis = 1).columns.tolist()]
 
     # Save to a CSV
     player_stats_df.to_csv('Brazil_world_cup_2022.csv')
