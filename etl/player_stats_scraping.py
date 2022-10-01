@@ -6,6 +6,9 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import requests
+import warnings
+warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning) 
+
 
 
 # Functions
@@ -16,7 +19,6 @@ def get_page_obj(url):
     soup = BeautifulSoup(page.text, 'html.parser')
 
     return soup
-
 
 def extract_teams(url, soup, id_table):
     # Extract the table of G group
@@ -76,35 +78,51 @@ def extract_player_season(soup, id):
 
     return stats_link
 
-def extract_player_stats(url, stats_link, last_n_seasons):
-    player_seasons = pd.DataFrame()
-    for stats_link_season in stats_link[-last_n_seasons:]:
-       
-        # Get the player stats with pandas
-        player_stats = pd.DataFrame(pd.read_html(url + stats_link_season[1:])[0])
-
-        # Change columns 
-        player_stats.columns = player_stats.columns.get_level_values(1)
 
 
-        
-        # Organize columns 
-        player_stats = player_stats.loc[:, player_stats.columns.tolist()[-3:] + player_stats.columns.tolist()[:-3]]
-        player_stats = player_stats.loc[:, ~player_stats.columns.duplicated()]
-        player_seasons = pd.concat([player_seasons, player_stats], axis = 0, ignore_index=True)
-    return player_seasons
+
+def extract_matches_stats(url, team):
+    tables = pd.DataFrame(pd.read_html(url, match = f'{team} Estatísticas d'))
+    table_player = tables.loc[0][0]
+    table_player.columns = table_player.columns.get_level_values(1)
+
+    table_gk = tables.loc[1][0]
+    table_gk.columns = table_gk.columns.get_level_values(1)
+    table_players = pd.merge(table_player, table_gk, left_index=True, right_index=True, suffixes=('', '_DROP'), how = 'left').filter(regex='^(?!.*_DROP)').iloc[:-1]
+
+
+    return table_players
+
+def extract_player_matches(soup_, id_table):
+    matches_link = []
+    teams = []
+    opponents = []
+    date = []
+    table_matches = soup_.find('table', id=id_table)
+    rows = table_matches.find_all('tr')
+    for row in rows:
+        if (row.find('a') != None) & (len(row.find_all('td')) > 0):
+            
+            matches_link.append(row.find('a', href = True)['href'])
+            date.append(row.find('a', href = True).contents[0])
+            teams.append(row.find_all('td')[5].find('a').text)
+            opponents.append(row.find_all('td')[6].find('a').text)
+    return (date, matches_link, teams, opponents)
+
 
 # Main
+
 def main():
 
-      # Team to analyze
+
+
+
+    # Team to analyze
     team_analyzed = 'Brazil'
 
     # Seasons to analyze
     last_n_seasons = 3
 
-
-    
     # URL to find stats about soccer players
     url = 'https://fbref.com/'
     world_cup_url = 'pt/comps/1/FIFA-World-Cup-Estatisticas'
@@ -117,22 +135,16 @@ def main():
 
     # Extract players soup obj
     soup_players = get_page_obj(team_dict[team_analyzed])
-    
+
     # Get all the players 
     player_dict = extract_players(url, soup_players, 'stats_standard_4')
 
-    # Columns to fill the dataframe
-    valid_columns = ['Nome', 'Posicao', 'Idade', 'Data', 'Dia', 'Camp.', 'Rodada', 'Local',
-        'Resultado', 'Equipe', 'Oponente', 'Início', 'Pos.', 'Min.', 'Gols',
-        'Assis.', 'PB', 'PT', 'TC', 'CaG', 'CrtsA', 'CrtV', 'Contatos',
-        'Pressão', 'Div', 'Crts', 'Bloqueios', 'xG', 'npxG', 'xA', 'SCA', 'GCA',
-        'Cmp', 'Att', 'Cmp%', 'Progresso', 'Conduções', 'Succ', 'Desativado', 'TklW',
-        'OG','Fts','PKcon','Pênaltis convertidos','FltsP','Crz', 'Relatório da Partida']
 
+    
     # Empty dataframe      
-    player_stats_df = pd.DataFrame(columns = valid_columns)
+    player_stats_df = pd.DataFrame()
 
-
+    print(f'Getting matches stats for {team_analyzed} in the last {last_n_seasons} seasons...')
     for player in tqdm(list(player_dict.keys())):
         if int(player_dict[player][-1]) < 3:
             # It skips the players that have less than 3 matches in the Brazil team
@@ -147,24 +159,44 @@ def main():
             # Extract the link for each season       
             stats_link = extract_player_season(soup_player, "bottom_nav_container")
             
-            # Get the stats for the player in the last n seasons
-            player_stats = extract_player_stats(url, stats_link, last_n_seasons)
+            # Check all the seasons
+            for stat_link in stats_link[-last_n_seasons:]:
+                soup_season = get_page_obj(url[:-1] + stat_link)
+                # Get the match link and the team to filter stats
+                match_info = extract_player_matches(soup_season, 'matchlogs_all')
+                # Iterate over the matches
+                for date, link, team, opponent in zip(match_info[0],match_info[1], match_info[2], match_info[3] ):
+                    
+                    stats = extract_matches_stats(url[:-1] + link, team)
+                    stats = stats.loc[:, ~stats.columns.duplicated()]
+                    
+                    stats['Data'] = date
+                    stats['Equipe'] = team
+                    stats['Oponente'] = opponent
+
+                    
+                    # Concatenate the files
+                    player_stats_df = pd.concat([player_stats_df, stats], axis = 0, ignore_index=True, sort=False)
+                
             
-            # Add Other players info
-            player_stats['Nome'] = player
-            player_stats['Posicao'] = player_info[1]
-            player_stats['Idade'] = player_info[2]
-        
-        # Fill the columns that don't contain info with nan 
-        for col in valid_columns:
-            if col not in player_stats.columns.tolist():
-                player_stats[col] = np. nan  
-        player_stats = player_stats.loc[:, ~player_stats.columns.duplicated()]
-        
-        # Fill the players table with all matches info in the season
-        player_stats_df = pd.concat([player_stats_df, player_stats[valid_columns]], axis = 0, ignore_index=True, sort=False)
-    # Save the data to a csv 
-    player_stats_df.to_csv(f'{team_analyzed}_world_cup_2022.csv')
-    
+    # Remove all the _x and _y suffix
+    player_stats_df = player_stats_df[player_stats_df.columns.drop(list(player_stats_df.filter(regex='_')))]
+
+
+    # Some players are from the same team and the stats are duplicated for the match
+    player_stats_df = player_stats_df.drop_duplicates()
+
+    # Organize Columns with Date at first
+    player_stats_df = player_stats_df.loc[:, ['Data', 'Equipe', 'Oponente'] + player_stats_df[~player_stats_df.isin(['Data', 'Equipe', 'Oponente'])].columns.tolist()]
+
+    # Save to a CSV
+    player_stats_df.to_csv('Brazil_world_cup_2022.csv')
+
+
+
+
 if __name__ == '__main__':
     main()
+
+
+
