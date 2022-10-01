@@ -11,7 +11,7 @@
 
 ### 1.1 Feature Description
 | Feature | Description | 
-| ------- | ---------   | 
+| :---: | :---:   | 
 | data | Match date |
 | equipe |  Team analyzed |
 | oponente |  Opponent team |
