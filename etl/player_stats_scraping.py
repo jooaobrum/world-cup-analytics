@@ -6,6 +6,7 @@ import numpy as np
 from tqdm import tqdm
 import requests
 import warnings
+import os
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning) 
 
 
@@ -136,6 +137,9 @@ def main():
     # Seasons to analyze
     last_n_seasons = 3
 
+    # Folder to save the data
+    folder_name = 'raw'
+
     # URL to find stats about soccer players
     url = 'https://fbref.com/'
     world_cup_url = 'pt/comps/1/FIFA-World-Cup-Estatisticas'
@@ -199,7 +203,9 @@ def main():
     player_stats_df = player_stats_df.loc[:, ['data', 'equipe', 'oponente'] + player_stats_df.drop(['data', 'equipe', 'oponente'], axis = 1).columns.tolist()]
         
     # Save to a CSV
-    player_stats_df.to_csv('Brazil_world_cup_2022.csv')
+    if not os.path.exists(folder_name):
+        os.makedir(folder_name)
+    player_stats_df.to_csv(os.path.join(folder_name,'Brazil_world_cup_2022.csv'))
 
 
 

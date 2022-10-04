@@ -45,11 +45,11 @@ def table_info(df):
 def main():
     
     db_name = 'brazil_wc2022.db'
-
+    folder_name = 'raw' 
 
     # Open the connection with the database
     print('Opening connection...')
-    engine = db.create_engine('sqlite:///' + db_name)
+    engine = db.create_engine(f'sqlite:///{folder_name}/{db_name}')
     print('Ok')
 
     # Find all files 
@@ -61,7 +61,7 @@ def main():
            
             table_name = filename.split('.')[0]
             # Read the data
-            df = pd.read_csv(filename, index_col = [0])
+            df = pd.read_csv(os.path.join(folder_name, filename), index_col = [0])
             print(df)
 
             # Extract the variables and the types to create a table
