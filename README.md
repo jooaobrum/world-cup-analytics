@@ -1,13 +1,12 @@
-# Brazil National Team Analysis - Is really Neymar the best hope?
+# ETL Soccer Player Stats
 
-This analysis intend to help to understand better the Brazil national team and support some hypothesis created during the last 4 years. The scope of this work is extract statistical information about matches that contains brazilian players in the last 3 seasons and show some useful information 1 month before the World Cup 2022.
+This project is an web scrapping code to extract soccer players' statistics from www.fbref.com .
 
 
 
 ## Index
 
 - [1. ETL](#1-etl)
-- [2. Analysis](#2-análises)
 
 ## 1. ETL
 
